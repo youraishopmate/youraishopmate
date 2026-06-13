@@ -1,0 +1,20 @@
+import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
+
+/**
+ * Get the current user's ID from the session.
+ * Throws if the user is not authenticated.
+ */
+export async function getUserId(): Promise<string> {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) throw new Error('Unauthorized')
+  return session.user.id
+}
+
+/**
+ * Get the current session and user.
+ * Returns null if not authenticated.
+ */
+export async function getSession() {
+  return await auth.api.getSession({ headers: await headers() })
+}
