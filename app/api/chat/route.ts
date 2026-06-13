@@ -112,12 +112,13 @@ Guidelines:
       model:'claude-3-5-sonnet-latest',
       max_tokens: 1024,
       system: systemPrompt,
-      messages: messages.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-    })
-
+       messages: messages.map((msg: any) => {
+      const textContent = typeof msg.content === 'string' ? msg.content : (msg.content?.text || '');
+      return {
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: textContent || 'Search query'
+      };
+    }).filter((msg: any) => msg.content.trim() !== ''),
     const assistantMessage =
       response.content[0].type === 'text' ? response.content[0].text : ''
 
