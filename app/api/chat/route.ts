@@ -10,11 +10,9 @@ interface UserIntent {
   priceRange?: { min: number; max: number }
 }
 
-// Intent parsing function
 function parseIntent(userMessage: string): UserIntent {
   const lowerMessage = userMessage.toLowerCase()
 
-  // Price range detection
   let priceRange = undefined
   const priceMatch = userMessage.match(/(\d+)\s*[-to]*\s*(\d+)/i)
   if (priceMatch) {
@@ -24,7 +22,6 @@ function parseIntent(userMessage: string): UserIntent {
     }
   }
 
-  // Category detection
   let category = undefined
   const categories = [
     'electronics',
@@ -41,7 +38,6 @@ function parseIntent(userMessage: string): UserIntent {
     }
   }
 
-  // Intent type detection
   if (
     lowerMessage.includes('compare') ||
     lowerMessage.includes('vs') ||
@@ -82,11 +78,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse user intent from the latest message
     const lastUserMessage = messages[messages.length - 1]?.content || query
     const intent = parseIntent(lastUserMessage)
 
-    // Enhanced system prompt with intent awareness
     const systemPrompt = `You are an AI shopping assistant for YourAI ShopMate, an Indian e-commerce aggregator.
 
 Your primary responsibilities:
@@ -109,16 +103,18 @@ Guidelines:
 - For Indian products and services only`
 
     const response = await client.messages.create({
-      model:'claude-3-5-sonnet-latest',
+      model: 'claude-3-5-sonnet-latest',
       max_tokens: 1024,
       system: systemPrompt,
-       messages: messages.map((msg: any) => {
-      const textContent = typeof msg.content === 'string' ? msg.content : (msg.content?.text || '');
-      return {
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: textContent || 'Search query'
-      };
-    }).filter((msg: any) => msg.content.trim() !== ''),
+      messages: messages.map((msg: any) => {
+        const textContent = typeof msg.content === 'string' ? msg.content : (msg.content?.text || '');
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : 'user',
+          content: textContent || 'Search query'
+        };
+      }).filter((msg: any) => msg.content.trim() !== ''),
+    })
+
     const assistantMessage =
       response.content[0].type === 'text' ? response.content[0].text : ''
 
