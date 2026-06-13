@@ -1,78 +1,51 @@
 'use client'
 
-import { Suspense } from 'react'
-import { useState, useRef, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import ReactMarkdown from 'react-markdown'
 import Navbar from '@/components/navbar'
+import { getProductsByQuery } from '@/lib/products'
+import type { Product } from '@/lib/products'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
 }
 
-interface Product {
-  id: number
-  name: string
-  price: number
-  platform: string
-  category: string
-  rating: number
-  description: string
-}
-
 function SearchPageContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const initialQuery = searchParams.get('q') || ''
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [products, setProducts] = useState<Product[]>([])
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [hasInitialized, setHasInitialized] = useState(false)
 
-  // Fetch products based on search query
+  // Auto-submit query if it exists on page load
   useEffect(() => {
-    if (initialQuery) {
-      fetchProducts(initialQuery)
+    if (initialQuery && !hasInitialized) {
+      setHasInitialized(true)
+      submitQuery(initialQuery)
     }
-  }, [initialQuery])
+  }, [initialQuery, hasInitialized])
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const submitQuery = async (query: string) => {
+    if (!query.trim()) return
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  const fetchProducts = async (query: string) => {
-    try {
-      const response = await fetch(`/api/products?q=${encodeURIComponent(query)}`)
-      const data = await response.json()
-      setProducts(data.products)
-    } catch (error) {
-      console.error('Failed to fetch products:', error)
-    }
-  }
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim()) return
-
-    // Add user message
-    const userMessage: Message = { role: 'user', content: input }
-    setMessages([...messages, userMessage])
-    setInput('')
     setIsLoading(true)
+    const userMessage: Message = { role: 'user', content: query }
+    setMessages([userMessage])
 
     try {
-      // Get AI response
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
-          query: input,
+          messages: [userMessage],
+          query: query,
         }),
       })
 
@@ -81,54 +54,74 @@ function SearchPageContent() {
         role: 'assistant',
         content: data.message,
       }
-      setMessages((prev) => [...prev, assistantMessage])
+      setMessages([userMessage, assistantMessage])
 
-      // Fetch products based on the query
-      fetchProducts(input)
+      // Get products based on query
+      const foundProducts = getProductsByQuery(query).slice(0, 8)
+      setProducts(foundProducts)
     } catch (error) {
       console.error('Failed to get response:', error)
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+      }
+      setMessages([userMessage, errorMessage])
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim()) return
+
+    const query = input
+    setInput('')
+    await submitQuery(query)
+  }
+
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Chat Section */}
-            <div className="lg:col-span-1 bg-white rounded-lg shadow p-6 h-[600px] flex flex-col">
-              <h2 className="text-2xl font-bold mb-4">Shopping Assistant</h2>
+      <main style={{ background: 'var(--color-background-secondary)' }} className="min-h-screen py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Chat Section - Left */}
+            <div className="lg:col-span-5 flex flex-col" style={{ background: 'var(--color-background-primary)', borderColor: 'var(--color-border-tertiary)' }} className="rounded-lg border p-6 h-fit sticky top-6">
+              <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                Shopping Assistant
+              </h2>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+              <div className="flex-1 overflow-y-auto mb-4 space-y-3 max-h-96">
                 {messages.length === 0 ? (
-                  <div className="text-center text-gray-500 py-8">
-                    <p>Start asking about products...</p>
-                  </div>
+                  <p className="text-center" style={{ color: 'var(--color-text-secondary)' }}>
+                    Search for products to get AI recommendations
+                  </p>
                 ) : (
                   messages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex ${
-                        msg.role === 'user' ? 'justify-end' : 'justify-start'
-                      }`}
-                    >
+                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div
-                        className={`max-w-xs px-4 py-2 rounded-lg ${
+                        className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
                           msg.role === 'user'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-900'
+                            ? 'bg-purple-600 text-white'
+                            : 'rounded-lg p-3'
                         }`}
+                        style={msg.role === 'assistant' ? { background: 'var(--color-background-secondary)', color: 'var(--color-text-primary)' } : {}}
                       >
-                        {msg.content}
+                        {msg.role === 'assistant' ? (
+                          <div className="text-xs">
+                            {msg.content.split('\n').map((line, i) => (
+                              <p key={i} className="mb-1">{line}</p>
+                            ))}
+                          </div>
+                        ) : (
+                          msg.content
+                        )}
                       </div>
                     </div>
                   ))
                 )}
-                <div ref={messagesEndRef} />
               </div>
 
               {/* Input */}
@@ -139,59 +132,66 @@ function SearchPageContent() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about products..."
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 px-3 py-2 rounded border text-sm"
+                  style={{ borderColor: 'var(--color-border-secondary)', color: 'var(--color-text-primary)' }}
                 />
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition"
+                  className="px-4 py-2 text-white rounded text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+                  style={{ background: '#7F77DD' }}
                 >
-                  Send
+                  {isLoading ? 'Loading...' : 'Send'}
                 </button>
               </form>
             </div>
 
-            {/* Products Section */}
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold mb-6">Recommended Products</h2>
+            {/* Products Section - Right */}
+            <div className="lg:col-span-7">
+              <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                Recommended Products
+              </h2>
               {products.length === 0 ? (
-                <div className="text-center text-gray-500 py-12 bg-white rounded-lg">
-                  <p>Search for products to see recommendations</p>
+                <div className="text-center py-12 rounded-lg" style={{ background: 'var(--color-background-primary)', borderColor: 'var(--color-border-tertiary)' }} className="border">
+                  <p style={{ color: 'var(--color-text-secondary)' }}>
+                    Search for products to see recommendations
+                  </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {products.map((product) => (
                     <div
                       key={product.id}
-                      className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-4 border border-gray-100"
+                      className="rounded-lg border overflow-hidden hover:shadow-md transition"
+                      style={{ borderColor: 'var(--color-border-tertiary)', background: 'var(--color-background-primary)' }}
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-gray-900 flex-1">
+                      {/* Product Image Placeholder */}
+                      <div className="h-24 flex items-center justify-center text-3xl" style={{ background: product.bg }}>
+                        {product.emoji}
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="p-2.5">
+                        <p className="text-xs font-medium mb-0.5 line-clamp-1" style={{ color: 'var(--color-text-primary)' }}>
                           {product.name}
-                        </h3>
-                        <span className="text-yellow-500 text-sm font-medium">
-                          ★ {product.rating}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {product.description}
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="text-xl font-bold text-blue-600">
-                            ₹{product.price.toLocaleString()}
-                          </p>
-                          <p className="text-xs text-gray-500">
+                        </p>
+                        <p className="text-xs mb-2 line-clamp-1" style={{ color: 'var(--color-text-secondary)' }}>
+                          {product.brand}
+                        </p>
+
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs font-semibold" style={{ color: '#534AB7' }}>
+                            ₹{product.price}
+                          </span>
+                          <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: '#EEEDFE', color: '#534AB7' }}>
                             {product.platform}
-                          </p>
+                          </span>
                         </div>
-                        <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                          {product.category}
-                        </span>
+
+                        <button className="w-full text-xs px-2 py-1.5 rounded text-white font-medium hover:opacity-90 transition" style={{ background: '#7F77DD' }}>
+                          View Deal →
+                        </button>
                       </div>
-                      <button className="w-full mt-3 px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
-                        View on {product.platform}
-                      </button>
                     </div>
                   ))}
                 </div>
