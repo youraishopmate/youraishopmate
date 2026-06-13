@@ -104,7 +104,7 @@ Guidelines:
 
     // Upgraded model parameter target configuration
     const response = await client.messages.create({
-      model: 'claude-3-7-sonnet-latest',
+model: 'claude-sonnet-4-6',
       max_tokens: 1024,
       system: systemPrompt,
       messages: messages.map((msg: any) => {
