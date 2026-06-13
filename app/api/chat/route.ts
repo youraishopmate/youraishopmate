@@ -102,8 +102,9 @@ Guidelines:
 - Provide value through comparisons and tips
 - For Indian products and services only`
 
+    // Upgraded model parameter target configuration
     const response = await client.messages.create({
-      model: 'claude-3-5-sonnet-latest',
+      model: 'claude-3-7-sonnet-latest',
       max_tokens: 1024,
       system: systemPrompt,
       messages: messages.map((msg: any) => {
