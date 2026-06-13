@@ -1,0 +1,80 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-geist-sans), 'Geist Fallback';
+  --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --color-background: #FFFFFF;
+  --color-foreground: #1A1A1A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A1A1A;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #1A1A1A;
+  --color-primary: #7F77DD;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F8F7FC;
+  --color-secondary-foreground: #1A1A1A;
+  --color-muted: #F0EBFA;
+  --color-muted-foreground: #666666;
+  --color-accent: #7F77DD;
+  --color-accent-foreground: #FFFFFF;
+  --color-destructive: #DC2626;
+  --color-border: #E5E0F0;
+  --color-input: #E5E0F0;
+  --color-ring: #7F77DD;
+  --radius: 0.625rem;
+}
+
+:root {
+  color-scheme: light;
+  /* Purple/Violet Theme */
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F8F7FC;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  --color-border-secondary: #E5E0F0;
+  --color-border-tertiary: #F0EBFA;
+  --color-primary: #7F77DD;
+  --color-primary-accent: #534AB7;
+  --color-primary-light: #EEEDFE;
+  --border-radius-lg: 0.625rem;
+  
+  /* For compatibility with shadcn */
+  --background: #FFFFFF;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  --primary: #7F77DD;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F8F7FC;
+  --secondary-foreground: #1A1A1A;
+  --muted: #F0EBFA;
+  --muted-foreground: #666666;
+  --accent: #7F77DD;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC2626;
+  --border: #E5E0F0;
+  --input: #E5E0F0;
+  --ring: #7F77DD;
+  --radius: 0.625rem;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
