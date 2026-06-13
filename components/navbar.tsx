@@ -7,16 +7,16 @@ interface NavbarProps {
   showProfileLinks?: boolean
 }
 
-const OCCASIONS = [
-  'Diwali',
-  'Wedding Season',
-  "Valentine's Day",
-  'Holi',
-  'Christmas & New Year',
-  "Mother's Day",
-  'Raksha Bandhan',
-  'Back to School',
-]
+const OCCASIONS_MAP = {
+  'Diwali': '/occasions/diwali',
+  'Wedding Season': '/occasions/wedding-season',
+  "Valentine's Day": '/occasions/valentines-day',
+  'Holi': '/occasions/holi',
+  'Christmas & New Year': '/occasions/christmas-new-year',
+  "Mother's Day": '/occasions/mothers-day',
+  'Raksha Bandhan': '/occasions/raksha-bandhan',
+  'Back to School': '/occasions/back-to-school',
+}
 
 const BLOG_CATEGORIES = [
   'All Blogs',
@@ -65,18 +65,27 @@ export default function Navbar({ showProfileLinks = true }: NavbarProps) {
                 Occasions
                 <span className="text-xs">▾</span>
               </button>
-              <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-50" style={{ borderColor: 'var(--color-border-tertiary)' }}>
-                <div className="grid grid-cols-2 gap-2">
-                  {OCCASIONS.map((occ) => (
+              <div className="absolute left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-50" style={{ borderColor: 'var(--color-border-tertiary)' }}>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(OCCASIONS_MAP).map(([name, link]) => (
                     <Link
-                      key={occ}
-                      href={`/occasions?search=${occ.toLowerCase().replace(/\s+/g, '-')}`}
-                      className="px-3 py-2 rounded hover:bg-purple-50 text-sm"
+                      key={name}
+                      href={link}
+                      className="px-3 py-2 rounded hover:bg-purple-50 text-sm transition flex items-center gap-2"
                       style={{ color: 'var(--color-text-primary)' }}
                     >
-                      {occ}
+                      {name}
                     </Link>
                   ))}
+                </div>
+                <div className="border-t mt-3 pt-3">
+                  <Link
+                    href="/occasions"
+                    className="text-xs font-medium hover:opacity-70 transition"
+                    style={{ color: '#7F77DD' }}
+                  >
+                    View all occasions →
+                  </Link>
                 </div>
               </div>
             </div>

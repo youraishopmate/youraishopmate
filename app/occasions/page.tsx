@@ -1,99 +1,139 @@
 import Navbar from '@/components/navbar'
+import Link from 'next/link'
 
 const OCCASIONS = [
   {
-    id: 1,
-    name: 'Holi Festival',
-    description: 'Festival of Colors - Shop for colors, gifts, and festive wear',
-    date: 'March 25, 2024',
-    daysLeft: 42,
-    icon: '🎨',
+    name: 'Diwali',
+    emoji: '🪔',
+    tagline: 'Light up the festivities with perfect gifts',
+    daysUntil: 127,
+    bg: '#FEF3C7',
+    link: '/occasions/diwali',
   },
   {
-    id: 2,
-    name: 'Eid Celebration',
-    description: 'Eid-ul-Fitr - Traditional attire and gifts',
-    date: 'April 11, 2024',
-    daysLeft: 59,
-    icon: '🌙',
-  },
-  {
-    id: 3,
     name: 'Wedding Season',
-    description: 'Bridal wear, jewelry, and celebration essentials',
-    date: 'May 2024 - June 2024',
-    daysLeft: 90,
-    icon: '💍',
+    emoji: '💍',
+    tagline: 'Dress for every wedding moment',
+    daysUntil: 155,
+    bg: '#FCE7F3',
+    link: '/occasions/wedding-season',
   },
   {
-    id: 4,
-    name: 'Summer Vacation',
-    description: 'Travel gear, beachwear, and vacation essentials',
-    date: 'May 2024',
-    daysLeft: 75,
-    icon: '🏖️',
+    name: "Valentine's Day",
+    emoji: '💝',
+    tagline: 'Gifts they will remember forever',
+    daysUntil: 64,
+    bg: '#FFE4E6',
+    link: '/occasions/valentines-day',
   },
   {
-    id: 5,
-    name: 'Diwali Festival',
-    description: 'Festival of Lights - Home decor, gifts, and traditional items',
-    date: 'November 1, 2024',
-    daysLeft: 232,
-    icon: '🪔',
+    name: 'Holi',
+    emoji: '🎨',
+    tagline: 'Play in colour, glow after',
+    daysUntil: 94,
+    bg: '#F3E8FF',
+    link: '/occasions/holi',
   },
   {
-    id: 6,
-    name: 'Christmas Season',
-    description: 'Christmas gifts, decorations, and festive items',
-    date: 'December 25, 2024',
-    daysLeft: 286,
-    icon: '🎄',
+    name: 'Christmas & New Year',
+    emoji: '🎄',
+    tagline: 'Celebrate, gift, and start fresh',
+    daysUntil: 196,
+    bg: '#DCFCE7',
+    link: '/occasions/christmas-new-year',
+  },
+  {
+    name: "Mother's Day",
+    emoji: '🌸',
+    tagline: 'For the one who does it all',
+    daysUntil: 142,
+    bg: '#FFEDD5',
+    link: '/occasions/mothers-day',
+  },
+  {
+    name: 'Raksha Bandhan',
+    emoji: '🎀',
+    tagline: 'Celebrate the bond that lasts forever',
+    daysUntil: 88,
+    bg: '#FEF3C7',
+    link: '/occasions/raksha-bandhan',
+  },
+  {
+    name: 'Back to School',
+    emoji: '🎒',
+    tagline: 'Start the year right - equipped and inspired',
+    daysUntil: 234,
+    bg: '#DBEAFE',
+    link: '/occasions/back-to-school',
   },
 ]
 
 export default function OccasionsPage() {
   return (
-    <>
+    <div style={{ background: 'var(--color-background-primary)' }}>
       <Navbar />
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold mb-2">Upcoming Occasions</h1>
-          <p className="text-gray-600 mb-12">
-            Shop for upcoming festivals and special events
-          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {OCCASIONS.map((occasion) => (
-              <div
-                key={occasion.id}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition p-6 border border-gray-100"
-              >
-                <div className="text-4xl mb-3">{occasion.icon}</div>
-                <h3 className="text-xl font-bold mb-2">{occasion.name}</h3>
-                <p className="text-gray-600 text-sm mb-4">{occasion.description}</p>
-                <div className="mb-4">
-                  <p className="text-sm text-gray-500">{occasion.date}</p>
-                  <div className="mt-2 text-red-600 font-semibold">
-                    {occasion.daysLeft} days to go
-                  </div>
-                </div>
+      {/* Hero Section */}
+      <section className="px-6 py-12 text-center" style={{ background: 'var(--color-background-secondary)' }}>
+        <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
+          Shop by Occasion
+        </h1>
+        <p className="text-lg mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+          From Diwali to Back to School — curated picks for every celebration
+        </p>
+      </section>
 
-                {/* Countdown Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                  <div
-                    className="bg-red-500 h-2 rounded-full"
-                    style={{ width: `${Math.min(100, (occasion.daysLeft / 365) * 100)}%` }}
-                  ></div>
-                </div>
-
-                <button className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                  Shop for {occasion.name}
+      {/* Occasions Grid */}
+      <section className="max-w-6xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {OCCASIONS.map((occasion) => (
+            <Link
+              key={occasion.name}
+              href={occasion.link}
+              className="rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+              style={{ background: occasion.bg }}
+            >
+              <div className="p-6 text-center">
+                <div className="text-6xl mb-3">{occasion.emoji}</div>
+                <h3 className="text-lg font-bold mb-1" style={{ color: '#1A1A1A' }}>
+                  {occasion.name}
+                </h3>
+                <p className="text-sm mb-4" style={{ color: '#666' }}>
+                  {occasion.tagline}
+                </p>
+                <p className="text-xs font-semibold" style={{ color: '#7F77DD' }}>
+                  in {occasion.daysUntil} days
+                </p>
+                <button
+                  className="w-full mt-4 px-4 py-2 rounded-lg font-medium text-white hover:opacity-90 transition"
+                  style={{ background: '#7F77DD' }}
+                >
+                  Shop now →
                 </button>
               </div>
-            ))}
-          </div>
+            </Link>
+          ))}
         </div>
-      </main>
-    </>
+      </section>
+
+      {/* CTA Section */}
+      <section className="max-w-2xl mx-auto px-6 py-12 text-center">
+        <div className="p-8 rounded-lg" style={{ background: '#EEEDFE' }}>
+          <p className="text-lg font-bold mb-2" style={{ color: '#534AB7' }}>
+            Can't find your occasion?
+          </p>
+          <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
+            Ask AI to help you find the perfect gift for any celebration
+          </p>
+          <button
+            className="px-6 py-2 rounded-lg font-medium text-white hover:opacity-90 transition"
+            style={{ background: '#7F77DD' }}
+          >
+            Ask AI Shopmate
+          </button>
+        </div>
+      </section>
+    </div>
   )
 }
+
