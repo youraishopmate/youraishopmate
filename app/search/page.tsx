@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import Navbar from '@/components/navbar'
-import { featuredProducts } from '@/lib/products'
+import { getFilteredProductsByQuery } from '@/lib/products'
 import type { Product } from '@/lib/products'
 import Link from 'next/link'
 
@@ -21,11 +21,14 @@ function SearchPageContent() {
   const initialQuery = searchParams.get('q') || 'earbuds'
 
   const [aiResponse, setAiResponse] = useState<string>('')
+  const [fullAiAnalysis, setFullAiAnalysis] = useState<string>('')
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [products, setProducts] = useState<Product[]>(featuredProducts)
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(featuredProducts)
+  const [products, setProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [input, setInput] = useState(initialQuery)
   const [hasInitialized, setHasInitialized] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     priceRange: [0, 10000],
@@ -68,6 +71,7 @@ function SearchPageContent() {
 
     setIsLoading(true)
     setInput(query)
+    setIsAnalysisOpen(false)
 
     try {
       const response = await fetch('/api/chat', {
@@ -77,14 +81,21 @@ function SearchPageContent() {
       })
 
       const data = await response.json()
-      setAiResponse(data.message || `Here are the best ${query} results for you.`)
+      const fullMessage = data.message || `Here are the best ${query} results for you.`
       
-      // Use featured products (all 8 products)
-      setProducts(featuredProducts)
-      setFilteredProducts(featuredProducts)
+      // Extract first sentence for summary
+      const firstSentence = fullMessage.split(/[.!?]/)[0] + '.'
+      setAiResponse(firstSentence)
+      setFullAiAnalysis(fullMessage)
+      
+      // Get filtered products based on query
+      const queryResults = getFilteredProductsByQuery(query)
+      setProducts(queryResults)
+      setFilteredProducts(queryResults)
     } catch (error) {
       console.error('Search failed:', error)
       setAiResponse('Sorry, I encountered an error. Please try again.')
+      setFullAiAnalysis('')
     } finally {
       setIsLoading(false)
     }
@@ -100,7 +111,7 @@ function SearchPageContent() {
       'Amazon': '#FF9900',
       'Flipkart': '#1F4B96',
       'Nykaa': '#E74C62',
-      'Myntra': '#0C1F37',
+      'Myntra': '#C41E3A',
     }
     return colors[platform] || '#7F77DD'
   }
@@ -117,173 +128,238 @@ function SearchPageContent() {
     <>
       <Navbar />
       <main style={{ background: 'var(--color-background-primary)' }} className="min-h-screen pb-32">
-        {/* Top Bar */}
+        {/* Enhanced Top Bar */}
         <div
-          className="sticky top-0 z-40 border-b px-6 py-4"
+          className="sticky top-0 z-40 border-b px-6 py-5"
           style={{
             background: 'var(--color-background-primary)',
             borderColor: 'var(--color-border-tertiary)',
           }}
         >
-          <div className="max-w-7xl mx-auto flex items-center gap-3">
-            <Link href="/" className="text-xl hover:opacity-70">
-              ←
-            </Link>
-            <span style={{ color: 'var(--color-text-primary)' }}>
-              AI results for: <span className="font-semibold">{initialQuery}</span>
-            </span>
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Link href="/" className="text-2xl hover:opacity-70 flex-shrink-0">
+                ←
+              </Link>
+              <div>
+                <p
+                  className="text-xs font-semibold"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  Results for
+                </p>
+                <p
+                  className="text-lg font-bold"
+                  style={{ color: '#7F77DD' }}
+                >
+                  {initialQuery}
+                </p>
+              </div>
+            </div>
+            
+            {/* Filters Toggle Button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="lg:hidden px-4 py-2 rounded-lg border font-medium transition hover:opacity-80"
+              style={{
+                borderColor: 'var(--color-border-tertiary)',
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              Filters ⚙
+            </button>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 py-8 flex gap-6">
-          {/* Left Sidebar - Filters (Desktop Only) */}
-          <aside className="hidden lg:block w-60 flex-shrink-0">
-            <div
-              className="rounded-lg border p-6 sticky top-24"
-              style={{
-                background: 'var(--color-background-primary)',
-                borderColor: 'var(--color-border-tertiary)',
-              }}
-            >
-              <h3
-                className="text-sm font-bold mb-4"
-                style={{ color: 'var(--color-text-primary)' }}
+          {/* Left Sidebar - Filters (Collapsible on Mobile) */}
+          {showFilters && (
+            <aside className="fixed inset-0 top-24 lg:static lg:w-60 lg:flex-shrink-0 z-30 bg-white lg:bg-transparent">
+              <div
+                className="rounded-lg border p-6 sticky top-32 lg:top-24 h-screen lg:h-auto overflow-y-auto lg:overflow-y-visible"
+                style={{
+                  background: 'var(--color-background-primary)',
+                  borderColor: 'var(--color-border-tertiary)',
+                }}
               >
-                Filters
-              </h3>
-
-              {/* Category Filter */}
-              <div className="mb-6">
-                <p
-                  className="text-xs font-semibold mb-3"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  Category
-                </p>
-                <div className="space-y-2">
-                  {categories.map(cat => (
-                    <label key={cat} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.categories.includes(cat)}
-                        onChange={e => {
-                          const newCats = e.target.checked
-                            ? [...filters.categories, cat]
-                            : filters.categories.filter(c => c !== cat)
-                          setFilters({ ...filters, categories: newCats })
-                        }}
-                        className="w-4 h-4"
-                      />
-                      <span style={{ color: 'var(--color-text-secondary)' }}>{cat}</span>
-                    </label>
-                  ))}
+                <div className="flex items-center justify-between mb-4 lg:hidden">
+                  <h3 className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                    Filters
+                  </h3>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="text-xl hover:opacity-70"
+                  >
+                    ✕
+                  </button>
                 </div>
-              </div>
 
-              {/* Price Range */}
-              <div className="mb-6">
-                <p
-                  className="text-xs font-semibold mb-3"
+                <h3
+                  className="text-sm font-bold mb-4 hidden lg:block"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
-                  Price Range
-                </p>
-                <input
-                  type="range"
-                  min="0"
-                  max="10000"
-                  value={filters.priceRange[1]}
-                  onChange={e =>
-                    setFilters({
-                      ...filters,
-                      priceRange: [filters.priceRange[0], parseInt(e.target.value)],
-                    })
-                  }
-                  className="w-full"
-                />
-                <p
-                  className="text-xs mt-2"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  ₹0 - ₹{filters.priceRange[1].toLocaleString()}
-                </p>
-              </div>
+                  Filters
+                </h3>
 
-              {/* Platform Filter */}
-              <div className="mb-6">
-                <p
-                  className="text-xs font-semibold mb-3"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  Platform
-                </p>
-                <div className="space-y-2">
-                  {platforms.map(plat => (
-                    <label key={plat} className="flex items-center gap-2 text-sm cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.platforms.includes(plat)}
-                        onChange={e => {
-                          const newPlats = e.target.checked
-                            ? [...filters.platforms, plat]
-                            : filters.platforms.filter(p => p !== plat)
-                          setFilters({ ...filters, platforms: newPlats })
-                        }}
-                        className="w-4 h-4"
-                      />
-                      <span style={{ color: 'var(--color-text-secondary)' }}>{plat}</span>
-                    </label>
-                  ))}
+                {/* Category Filter */}
+                <div className="mb-6">
+                  <p
+                    className="text-xs font-semibold mb-3"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Category
+                  </p>
+                  <div className="space-y-2">
+                    {categories.map(cat => (
+                      <label key={cat} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={filters.categories.includes(cat)}
+                          onChange={e => {
+                            const newCats = e.target.checked
+                              ? [...filters.categories, cat]
+                              : filters.categories.filter(c => c !== cat)
+                            setFilters({ ...filters, categories: newCats })
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <span style={{ color: 'var(--color-text-secondary)' }}>{cat}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <button
-                className="w-full px-4 py-2 text-white font-medium rounded-lg hover:opacity-90 transition"
-                style={{ background: '#7F77DD' }}
-              >
-                Apply Filters
-              </button>
-            </div>
-          </aside>
+                {/* Price Range */}
+                <div className="mb-6">
+                  <p
+                    className="text-xs font-semibold mb-3"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Price Range
+                  </p>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10000"
+                    value={filters.priceRange[1]}
+                    onChange={e =>
+                      setFilters({
+                        ...filters,
+                        priceRange: [filters.priceRange[0], parseInt(e.target.value)],
+                      })
+                    }
+                    className="w-full"
+                  />
+                  <p
+                    className="text-xs mt-2"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    ₹0 - ₹{filters.priceRange[1].toLocaleString()}
+                  </p>
+                </div>
+
+                {/* Platform Filter */}
+                <div className="mb-6">
+                  <p
+                    className="text-xs font-semibold mb-3"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Platform
+                  </p>
+                  <div className="space-y-2">
+                    {platforms.map(plat => (
+                      <label key={plat} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={filters.platforms.includes(plat)}
+                          onChange={e => {
+                            const newPlats = e.target.checked
+                              ? [...filters.platforms, plat]
+                              : filters.platforms.filter(p => p !== plat)
+                            setFilters({ ...filters, platforms: newPlats })
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <span style={{ color: 'var(--color-text-secondary)' }}>{plat}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="w-full px-4 py-2 text-white font-medium rounded-lg hover:opacity-90 transition lg:hidden"
+                  style={{ background: '#7F77DD' }}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </aside>
+          )}
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* AI Response Card */}
+            {/* Slim AI Response Card */}
             {aiResponse && (
               <div
-                className="rounded-lg border-l-4 p-6 mb-8"
+                className="rounded-lg border-l-4 p-4 mb-8 flex items-center justify-between"
                 style={{
                   background: 'var(--color-background-primary)',
                   borderColor: '#7F77DD',
                 }}
               >
-                <div className="flex gap-3 items-start">
-                  <span className="text-2xl flex-shrink-0">✨</span>
-                  <div className="min-w-0">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => (
-                          <p className="text-sm m-0" style={{ color: 'var(--color-text-primary)' }}>
-                            {children}
-                          </p>
-                        ),
-                        strong: ({ children }) => <strong>{children}</strong>,
-                        em: ({ children }) => <em>{children}</em>,
-                        h2: ({ children }) => (
-                          <h2 className="text-sm font-bold mt-2 mb-1">{children}</h2>
-                        ),
-                        h3: ({ children }) => (
-                          <h3 className="text-sm font-semibold mt-2 mb-1">{children}</h3>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="text-sm list-disc list-inside m-0">{children}</ul>
-                        ),
-                        li: ({ children }) => <li className="m-0">{children}</li>,
-                      }}
-                    >
-                      {aiResponse}
-                    </ReactMarkdown>
-                  </div>
+                <div className="flex gap-3 items-center flex-1 min-w-0">
+                  <span className="text-xl flex-shrink-0">✦</span>
+                  <p
+                    className="text-sm line-clamp-2"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    {aiResponse}
+                  </p>
+                </div>
+                {fullAiAnalysis && (
+                  <button
+                    onClick={() => setIsAnalysisOpen(!isAnalysisOpen)}
+                    className="ml-4 text-xs font-medium flex-shrink-0 hover:opacity-70 transition"
+                    style={{ color: '#7F77DD' }}
+                  >
+                    See full {isAnalysisOpen ? '↑' : '↓'}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Collapsible Full Analysis Panel */}
+            {isAnalysisOpen && fullAiAnalysis && (
+              <div
+                className="rounded-lg border p-6 mb-8"
+                style={{
+                  background: 'var(--color-background-secondary)',
+                  borderColor: 'var(--color-border-tertiary)',
+                }}
+              >
+                <div className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => (
+                        <p className="mb-2 m-0">{children}</p>
+                      ),
+                      strong: ({ children }) => <strong>{children}</strong>,
+                      em: ({ children }) => <em>{children}</em>,
+                      h2: ({ children }) => (
+                        <h2 className="text-base font-bold mt-3 mb-2">{children}</h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="text-sm font-semibold mt-2 mb-1">{children}</h3>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="list-disc list-inside mb-2">{children}</ul>
+                      ),
+                      li: ({ children }) => <li className="mb-1">{children}</li>,
+                    }}
+                  >
+                    {fullAiAnalysis}
+                  </ReactMarkdown>
                 </div>
               </div>
             )}
@@ -325,10 +401,16 @@ function SearchPageContent() {
                       background: 'var(--color-background-primary)',
                     }}
                   >
+                    {/* Platform color accent bar */}
+                    <div
+                      className="h-1"
+                      style={{ background: getPlatformColor(product.platform) }}
+                    />
+
                     {/* Product Image */}
                     <div
-                      className="h-40 flex items-center justify-center text-5xl rounded-t-lg"
-                      style={{ background: product.bg }}
+                      className="h-40 flex items-center justify-center text-6xl"
+                      style={{ background: '#F8F8F8' }}
                     >
                       {product.emoji}
                     </div>
