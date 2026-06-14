@@ -12,7 +12,7 @@ const mapCategory = (nykaaCategory: string): string => {
 };
 
 export async function GET(request: Request) {
-  // Connect to Neon
+  // Connect to Neon Database
   const sql = neon(process.env.POSTGRES_URL!);
 
   // Check if you've added your free Apify token yet
