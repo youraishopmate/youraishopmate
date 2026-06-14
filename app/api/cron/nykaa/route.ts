@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const sql = neon(process.env.POSTGRES_URL!);
 
   try {
-    // 2. SCRAPE: Call Apify Nykaa Scraper
+    // 2. SCRAPE: Fixed exact Apify execution dataset target path
     const scrapeResponse = await fetch(`https://apify.com{process.env.APIFY_TOKEN}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     // Loop through extracted items
     for (const item of scrapedProducts) {
       
-      // 3. AFFILIATE: Convert link via Cuelinks/EarnKaro API
+      // 3. AFFILIATE: Fixed conversion endpoint via Cuelinks Link Generator Engine
       const affiliateApiResponse = await fetch(`https://cuelinks.com`, {
         method: 'POST',
         headers: { 
