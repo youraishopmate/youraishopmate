@@ -32,7 +32,7 @@ async function handleSync(request: Request) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         searchQueries: ["lipstick"],
-        maxItems: 5 // Low item index count for rapid test cycles
+        maxItems: 2 // Low item index count for rapid test cycles
       })
     });
     const scrapedProducts = await scrapeResponse.json();
