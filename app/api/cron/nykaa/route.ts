@@ -19,9 +19,9 @@ async function handleSync(request: Request) {
 
   // Check if you've added your free Apify token yet to protect against server crashes
   if (!process.env.APIFY_TOKEN) {
-    return NextResponse.json({ 
-      success: false, 
-      error: "Missing APIFY_TOKEN. Please sign up for a free account at apify.com to test." 
+    return NextResponse.json({
+      success: false,
+      error: "Missing APIFY_TOKEN. Please sign up for a free account at apify.com to test."
     }, { status: 400 });
   }
 
@@ -31,7 +31,7 @@ async function handleSync(request: Request) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        searchQueries: ["lipstick"], 
+        searchQueries: ["lipstick"],
         maxItems: 5 // Low item index count for rapid test cycles
       })
     });
@@ -46,7 +46,7 @@ async function handleSync(request: Request) {
         try {
           const affiliateApiResponse = await fetch(`https://cuelinks.com`, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Authorization': `Bearer ${process.env.CUELINKS_API_KEY}`,
               'Content-Type': 'application/json'
             },
@@ -83,10 +83,10 @@ async function handleSync(request: Request) {
       `;
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      status: "Database populated with test products successfully!", 
-      count: scrapedProducts.length 
+    return NextResponse.json({
+      success: true,
+      status: "Database populated with test products successfully!",
+      count: scrapedProducts.length
     });
 
   } catch (error) {
