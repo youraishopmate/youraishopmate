@@ -20,7 +20,7 @@ export interface Product {
  */
 export async function getFilteredProductsByQuery(query: string): Promise<Product[]> {
   const sql = neon(process.env.POSTGRES_URL!);
-  
+
   if (!query) {
     // If search is empty, return latest 20 products
     return await sql`
@@ -32,7 +32,7 @@ export async function getFilteredProductsByQuery(query: string): Promise<Product
 
   // Search by matching names or descriptions (case-insensitive)
   const searchPattern = `%${query}%`;
-  
+
   return await sql`
     SELECT * FROM public.product 
     WHERE name ILIKE ${searchPattern} 
