@@ -129,8 +129,125 @@ export const featuredProducts: Product[] = [
   },
 ]
 
+// Earbuds-specific products
+export const earbudsProducts: Product[] = [
+  {
+    id: 101,
+    name: 'boAt Airdopes 141',
+    brand: 'boAt',
+    price: 799,
+    originalPrice: 1499,
+    platform: 'Amazon',
+    category: 'Electronics',
+    rating: 4.3,
+    reviews: 8900,
+    emoji: '🎧',
+    bg: '#E6F1FB',
+    discountPercent: 47,
+  },
+  {
+    id: 102,
+    name: 'Noise Buds VS104',
+    brand: 'Noise',
+    price: 849,
+    originalPrice: 1799,
+    platform: 'Flipkart',
+    category: 'Electronics',
+    rating: 4.2,
+    reviews: 6700,
+    emoji: '🎧',
+    bg: '#E6F1FB',
+    discountPercent: 53,
+  },
+  {
+    id: 103,
+    name: 'realme Buds T100',
+    brand: 'realme',
+    price: 849,
+    originalPrice: 1999,
+    platform: 'Flipkart',
+    category: 'Electronics',
+    rating: 4.1,
+    reviews: 5200,
+    emoji: '🎧',
+    bg: '#E6F1FB',
+    discountPercent: 58,
+  },
+  {
+    id: 104,
+    name: 'PTron Basspods 94',
+    brand: 'PTron',
+    price: 699,
+    originalPrice: 1299,
+    platform: 'Amazon',
+    category: 'Electronics',
+    rating: 4.0,
+    reviews: 4100,
+    emoji: '🎧',
+    bg: '#E6F1FB',
+    discountPercent: 46,
+  },
+  {
+    id: 105,
+    name: 'Boult Audio Z40',
+    brand: 'Boult Audio',
+    price: 799,
+    originalPrice: 1799,
+    platform: 'Amazon',
+    category: 'Electronics',
+    rating: 4.4,
+    reviews: 7600,
+    emoji: '🎧',
+    bg: '#E6F1FB',
+    discountPercent: 56,
+  },
+  {
+    id: 106,
+    name: 'JBL Wave Beam',
+    brand: 'JBL',
+    price: 999,
+    originalPrice: 2299,
+    platform: 'Amazon',
+    category: 'Electronics',
+    rating: 4.5,
+    reviews: 9200,
+    emoji: '🎧',
+    bg: '#E6F1FB',
+    discountPercent: 57,
+  },
+  {
+    id: 107,
+    name: 'Zebronics Zeb-Sound Bomb',
+    brand: 'Zebronics',
+    price: 599,
+    originalPrice: 1199,
+    platform: 'Flipkart',
+    category: 'Electronics',
+    rating: 3.9,
+    reviews: 3400,
+    emoji: '🎧',
+    bg: '#E6F1FB',
+    discountPercent: 50,
+  },
+  {
+    id: 108,
+    name: 'Portronics Harmonics Twins S9',
+    brand: 'Portronics',
+    price: 749,
+    originalPrice: 1499,
+    platform: 'Amazon',
+    category: 'Electronics',
+    rating: 4.2,
+    reviews: 6100,
+    emoji: '🎧',
+    bg: '#E6F1FB',
+    discountPercent: 50,
+  },
+]
+
 export const mockProducts: Product[] = [
   ...featuredProducts,
+  ...earbudsProducts,
   // Additional products for filtering
   { id: 9, name: 'Matte Lip Set', brand: 'Nykaa', price: 799, originalPrice: 999, platform: 'Nykaa', category: 'Beauty', rating: 4.5, reviews: 4200, emoji: '💄', bg: '#FBEAF0' },
   { id: 10, name: 'Face Wash 100ml', brand: 'Cetaphil', price: 549, originalPrice: 699, platform: 'Amazon', category: 'Beauty', rating: 4.7, reviews: 5600, emoji: '🧴', bg: '#E1F5FE' },
@@ -160,4 +277,25 @@ export function getProductsByPriceRange(min: number, max: number): Product[] {
 
 export function getProductsByPlatform(platform: string): Product[] {
   return mockProducts.filter(p => p.platform === platform)
+}
+
+export function getFilteredProductsByQuery(query: string): Product[] {
+  const lowerQuery = query.toLowerCase()
+  
+  // Check for earbuds/headphones keywords
+  if (lowerQuery.includes('earbud') || lowerQuery.includes('bud') || lowerQuery.includes('headphone') || lowerQuery.includes('wireless') || lowerQuery.includes('audio')) {
+    let filtered = earbudsProducts
+    
+    // Check for budget constraints
+    const budgetMatch = lowerQuery.match(/under\s+(\d+)/i) || lowerQuery.match(/₹\s*(\d+)/i)
+    if (budgetMatch) {
+      const maxPrice = parseInt(budgetMatch[1])
+      filtered = filtered.filter(p => p.price <= maxPrice)
+    }
+    
+    return filtered.length > 0 ? filtered : earbudsProducts
+  }
+  
+  // Default: return products matching query
+  return getProductsByQuery(query)
 }
