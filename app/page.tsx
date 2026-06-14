@@ -63,9 +63,10 @@ export default function Home() {
 
   const suggestionChips = [
     'help me buy running shoes',
-    'surprise me with beauty',
-    'best earbuds under ₹1500',
-    'trending skincare',
+    'wireless earbuds under ₹1500',
+    'Korean skincare',
+    'quirky gift under ₹400',
+    'surprise me',
   ]
 
   return (

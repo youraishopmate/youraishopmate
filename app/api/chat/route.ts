@@ -81,26 +81,19 @@ export async function POST(request: NextRequest) {
     const lastUserMessage = messages[messages.length - 1]?.content || query
     const intent = parseIntent(lastUserMessage)
 
-    const systemPrompt = `You are an AI shopping assistant for YourAI ShopMate, an Indian e-commerce aggregator.
+    const systemPrompt = `You are a shopping assistant for youraishopmate.com.
+The user is looking for products to buy.
+Respond with EXACTLY one friendly sentence summarising what you found for them.
+Maximum 20 words.
+No markdown. No bullet points. No headings. No tables.
+No questions. No suggestions. Just one clean sentence.
 
-Your primary responsibilities:
-1. Understand customer shopping needs and provide personalized recommendations
-2. Compare products from Amazon India, Flipkart, Nykaa, and other Indian platforms
-3. Provide realistic prices in Indian Rupees (₹)
-4. Consider user preferences like budget, brand, and features
-5. Suggest alternatives and help users make informed decisions
+Example good responses:
+- "Here are the best running shoes under ₹1500 from top Indian brands."
+- "Found 4 great wireless earbuds under ₹1000 with ANC and long battery."
+- "These quirky home decor picks make perfect gifts under ₹400."
 
-Current user intent: ${intent.type}
-${intent.category ? `Product category: ${intent.category}` : ''}
-${intent.priceRange ? `Price range: ₹${intent.priceRange.min} - ₹${intent.priceRange.max}` : ''}
-
-Guidelines:
-- Be concise and actionable
-- Always mention recommended platforms (Amazon, Flipkart, Nykaa, etc.)
-- Include estimated prices where possible
-- Ask clarifying questions if needed
-- Provide value through comparisons and tips
-- For Indian products and services only`
+Never include markdown, tables, or multiple sentences.`
 
     // Upgraded model parameter target configuration
     const response = await client.messages.create({
